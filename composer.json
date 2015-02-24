@@ -1,0 +1,16 @@
+{
+	"name": "jorique/yii2-static",
+	"description": "Yii2 static content storaging",
+	"keywords": [
+		"yii2",
+		"flysystem",
+		"filesystem",
+		"static"
+	],
+	"authors": [
+		{
+			"name": "Alexander Zhuravlev",
+			"email": "a.jorique@gmail.com"
+		}
+	]
+}
