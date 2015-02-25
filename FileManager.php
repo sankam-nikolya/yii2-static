@@ -111,7 +111,8 @@ class FileManager extends Component {
 
 		$file->temp = 1;
 		$file->original_name = $uploadedFile->name;
-		$file->storage_id = $storageId;
+		//$file->storage_id = $storageId;
+		$file->storage_id = 1;
 		if($file->save()) {
 			$newName = sprintf('%010d', $file->id);
 			$newName = substr($newName, -3).'/'.substr($newName, -6, 3).'/'.$newName;
@@ -122,11 +123,15 @@ class FileManager extends Component {
 
 			$storage = $this->getStorage($storageId);
 			#TODO не учитывает разные стораджи
-			if($storage->copy($file->path, $newName)) {
+			$stream = fopen($file->path, 'r+');
+			if($storage->writeStream($newName, $stream)) {
 				$file->path = $newName;
 				$file->temp = 1;
 				return $file->save();
 			}
+		}
+		else {
+			print_r($file->errors);
 		}
 		return false;
 	}
