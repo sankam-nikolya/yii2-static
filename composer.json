@@ -14,6 +14,6 @@
 		}
 	],
 	"require": {
-		"creocoder/yii2-flysystem": "dev-master"
+		"creocoder/yii2-flysystem": "*"
 	}
 }
