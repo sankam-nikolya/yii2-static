@@ -12,5 +12,8 @@
 			"name": "Alexander Zhuravlev",
 			"email": "a.jorique@gmail.com"
 		}
-	]
+	],
+	"require": {
+		"creocoder/yii2-flysystem": "dev-master"
+	}
 }
