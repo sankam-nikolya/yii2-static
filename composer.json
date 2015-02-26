@@ -14,7 +14,8 @@
 		}
 	],
 	"require": {
-		"creocoder/yii2-flysystem": "*"
+		"creocoder/yii2-flysystem": "*",
+		"yiisoft/yii2-imagine": "~2.0"
 	},
 	"autoload": {
 		"psr-4": {

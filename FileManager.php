@@ -7,8 +7,11 @@ use InvalidArgumentException;
 use yii\base\InvalidConfigException;
 use yii\base\Component;
 use yii\helpers\FileHelper;
-use yii\validators\ImageValidator;
+use yii\web\ServerErrorHttpException;
 use yii\web\UploadedFile;
+use yii\web\NotFoundHttpException;
+use yii\imagine\Image;
+use Imagine\Image\ManipulatorInterface;
 
 /**
  * FileManager
@@ -48,9 +51,14 @@ use yii\web\UploadedFile;
  */
 class FileManager extends Component {
 
+	const TN_ADAPTIVE = ManipulatorInterface::THUMBNAIL_OUTBOUND;
+	const TN_EXACT = ManipulatorInterface::THUMBNAIL_INSET;
+
 	private $_storages = [];
 
 	public $storages = [];
+	public $baseUrl = null;
+	public $resizeCacheFolder = 'resize_cache';
 
 	public $defaultStorage;
 
@@ -67,6 +75,12 @@ class FileManager extends Component {
 		}
 		if(!isset($this->storages[$this->defaultStorage])) {
 			throw new InvalidConfigException('Default storage is not defined in storages list');
+		}
+		if($this->baseUrl === null) {
+			$this->baseUrl = '/';
+		}
+		else {
+			$this->baseUrl = rtrim($this->baseUrl, '/').'/';
 		}
 	}
 
@@ -111,6 +125,7 @@ class FileManager extends Component {
 
 		$file->temp = 1;
 		$file->original_name = $uploadedFile->name;
+		#TODO пока хардкором
 		//$file->storage_id = $storageId;
 		$file->storage_id = 1;
 		if($file->save()) {
@@ -134,5 +149,51 @@ class FileManager extends Component {
 			print_r($file->errors);
 		}
 		return false;
+	}
+
+	public function getUrl($id) {
+		$file = File::findOne($id);
+		if(!$file) {
+			throw new NotFoundHttpException('Image with id '.$id.' not found');
+		}
+		return $this->baseUrl.$file->path;
+	}
+
+	private function getResizePath($path, $sizes, $type) {
+		$path = explode(DIRECTORY_SEPARATOR, $path);
+		$fileName = end($path);
+		$fileName = explode('.', $fileName);
+		$fileName[0] = $fileName[0].'_'.$sizes[0].'_'.$sizes[1].'_'.$type;
+		$path[sizeof($path)-1] = implode('.', $fileName);
+		$path = implode(DIRECTORY_SEPARATOR, $path);
+		return $this->resizeCacheFolder.'/'.$path;
+	}
+
+	public function resizeGet($id, $sizes, $type=null) {
+		$type = $type ?: static::TN_ADAPTIVE;
+		$file = File::findOne($id);
+		if(!$file) {
+			throw new NotFoundHttpException('Image with id '.$id.' not found');
+		}
+		$resizePath = $this->getResizePath($file->path, $sizes, $type);
+
+		if(!$this->has($resizePath)) {
+			$stream = tmpfile();
+			$tmpName = stream_get_meta_data($stream);
+			$tmpName = $tmpName['uri'];
+
+			$ext = explode('.', $file->path);
+			$ext = end($ext);
+			$basePath = $this->getStorage($this->defaultStorage)->path;
+			$basePath = FileHelper::normalizePath($basePath);
+			$path = $basePath.'/'.$file->path;
+			if(!Image::thumbnail($path, $sizes[0], $sizes[1], $type)->save($tmpName, ['format' => $ext])) {
+				throw new ServerErrorHttpException('Saving thumbnal tmp error');
+			}
+			if(!$this->writeStream($resizePath, $stream)) {
+				throw new ServerErrorHttpException('Saving thumbnal tmp error');
+			}
+		}
+		return $resizePath;
 	}
 }
