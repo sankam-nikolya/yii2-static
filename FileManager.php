@@ -142,7 +142,9 @@ class FileManager extends Component {
 			if($storage->writeStream($newName, $stream)) {
 				$file->path = $newName;
 				$file->temp = 1;
-				return $file->save();
+				if($file->save()) {
+					return $file;
+				}
 			}
 		}
 		else {
