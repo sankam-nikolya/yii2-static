@@ -190,12 +190,12 @@ class FileManager extends Component {
 			$basePath = FileHelper::normalizePath($basePath);
 			$path = $basePath.'/'.$file->path;
 			if(!Image::thumbnail($path, $sizes[0], $sizes[1], $type)->save($tmpName, ['format' => $ext])) {
-				throw new ServerErrorHttpException('Saving thumbnal tmp error');
+				throw new ServerErrorHttpException('Saving thumbnail tmp error');
 			}
 			if(!$this->writeStream($resizePath, $stream)) {
-				throw new ServerErrorHttpException('Saving thumbnal tmp error');
+				throw new ServerErrorHttpException('Saving thumbnail tmp error');
 			}
 		}
-		return $resizePath;
+		return $this->baseUrl.$resizePath;
 	}
 }
