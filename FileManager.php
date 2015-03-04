@@ -141,7 +141,7 @@ class FileManager extends Component {
 			$stream = fopen($file->path, 'r+');
 			if($storage->writeStream($newName, $stream)) {
 				$file->path = $newName;
-				$file->temp = 1;
+				$file->temp = null;
 				if($file->save()) {
 					return $file;
 				}
