@@ -56,4 +56,14 @@ class File extends \yii\db\ActiveRecord {
 			'storage_id' => 'Storage ID',
 		];
 	}
+
+	public function beforeDelete() {
+		if(parent::beforeDelete()) {
+			if(Yii::$app->fileManager->delete($this->path)) {
+				#TODO рекрсивно удалять директории
+				return true;
+			}
+		}
+		return false;
+	}
 }
